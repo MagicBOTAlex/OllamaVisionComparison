@@ -1,10 +1,10 @@
-# your two endpoints
 import base64
 import os
 import re
 import httpx
 import asyncio
 import pandas as pd
+import time      # ← add this
 
 resultCsvPath = "./results.csv"
 comparingModel = "gemma3:12b"
@@ -46,6 +46,10 @@ async def generate_image_text(client: httpx.AsyncClient, base_url: str, model: s
     return resp.json().get("response", "")
 
 async def predict_missing():
+    # start timing and counter for throughput
+    start_time = time.monotonic()
+    processed_count = 0
+
     # Ensure every image has a row
     for path in all_images:
         if path not in df["image"].values:
@@ -65,6 +69,7 @@ async def predict_missing():
     lock = asyncio.Lock()
 
     async def worker(base_url: str):
+        nonlocal processed_count
         client = httpx.AsyncClient()
         try:
             while True:
@@ -93,8 +98,19 @@ async def predict_missing():
                         df.at[idx, "ethnicity"] = ethnicity
                         df.at[idx, "actual_gender"] = actual_gender
                         df.to_csv(resultCsvPath, index=False)
-                        print(f"Saved: {gender}\n")
 
+                        # bump counter and print throughput
+                        processed_count += 1
+                        elapsed = time.monotonic() - start_time
+                        rate = processed_count / elapsed if elapsed > 0 else 0.0
+                        sec_per_pred = elapsed / processed_count if processed_count > 0 else 0.0
+
+                        print(
+                            f"Saved: {gender}  |  "
+                            f"Total: {processed_count}  |  "
+                            f"{rate:.2f} pred/sec  |  "
+                            f"{sec_per_pred:.2f} sec/pred\n"
+                        )
                 except Exception as e:
                     print(f"Error on {image_path}: {e}")
 

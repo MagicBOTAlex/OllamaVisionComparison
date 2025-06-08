@@ -4,4 +4,4 @@ VMER_dataset/
 results.csv
 .*lock*
 data/
-.fuse*
+.*
