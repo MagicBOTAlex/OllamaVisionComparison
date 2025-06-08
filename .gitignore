@@ -1,4 +1,6 @@
 VGG-Face2/
 parsed/
 VMER_dataset/
-data.csv
+results.csv
+.*lock*
+data/

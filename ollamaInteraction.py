@@ -5,7 +5,7 @@ import httpx
 import asyncio
 import pandas as pd
 
-resultCsvPath = "./data.csv"
+resultCsvPath = "./results.csv"
 conpairingModel = "llama3.2-vision"
 predCol = "llama_pred"
 
@@ -13,12 +13,12 @@ predCol = "llama_pred"
 if os.path.exists(resultCsvPath):
     df = pd.read_csv(resultCsvPath)
 else:
-    df = pd.DataFrame(columns=["image", "actual_gender", "llama_pred", "gemma_pred"])
+    df = pd.DataFrame(columns=["image", "ethicity", "actual_gender", "llama_pred", "gemma_pred"])
 
 # collect all image paths under ./parsed/
 def get_all_images():
     images = []
-    for root, _, files in os.walk("./parsed/"):
+    for root, _, files in os.walk("./data/UTKFaceData/"):
         for file in files:
             images.append(os.path.join(root, file))
     return images
@@ -49,7 +49,7 @@ async def predict_missing():
     # ensure every image has a row
     for path in all_images:
         if path not in df["image"].values:
-            df.loc[len(df)] = [path, None, None, None]
+            df.loc[len(df)] = [path, None, None, None, None]
 
     # now process only those without a llama_pred
     for idx, row in df.iterrows():
@@ -68,6 +68,8 @@ async def predict_missing():
                 
                 # save just the regex result
                 df.at[idx, predCol] = gender
+                df.at[idx, "ethicity"] = race = row["image"].rsplit('.', 1)[0].split('_')[2]
+                df.at[idx, "actual_gender"] = race = row["image"].rsplit('.', 1)[0].split('_')[1]
                 df.to_csv(resultCsvPath, index=False)
                 print(f"Saved: {gender}\n")
             except Exception as e:
