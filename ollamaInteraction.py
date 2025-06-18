@@ -9,8 +9,8 @@ from collections import defaultdict
 import random
 
 resultCsvPath = "./results.csv"
-comparingModel = "llama3.2-vision"
-predCol = "llama_pred"
+comparingModel = "gemma3:12b"
+predCol = "gemma_pred"
 
 def get_all_images():
     images = []
@@ -36,7 +36,7 @@ def get_shuffled_filtered():
 # Randomly sample up to 1500 images per race
     sampled_images = []
     for race, imgs in images_by_race.items():
-        count = min(1500, len(imgs))
+        count = min(500, len(imgs))
         sampled = random.sample(imgs, count)
         sampled_images.extend(sampled)
 
@@ -149,8 +149,8 @@ async def predict_missing():
     endpoints = [
         "http://localhost:11434",
         "http://192.168.50.58:11434",
-        # "https://ollama.spoodythe.one",
-        # "https://ollama.deprived.dev"
+        "https://ollama.spoodythe.one",
+        "https://ollama.deprived.dev"
     ]
     auth = [
             None,
